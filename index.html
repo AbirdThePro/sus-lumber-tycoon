@@ -1,23 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sus Lumber Tycoon</title>
-  </head>
-  <body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sus Lumber Tycoon</title>
+</head>
+
+<body>
+  <dialog id="startScreen" open>
+    <h2>Welcome to Sus Lumber Tycoon!</h2>
+    <button id="startButton">Start Game</button>
+    <button id="tutorialButton">Instructions</button>
+  </dialog>
+  <dialog id="winScreen">
+    <h2>You win!</h2>
+    <button class="restartButton">Restart</button>
+  </dialog>
+  <dialog id="broke">
+    <h2>You ran out of money!</h2>
+    <button class="restartButton">Restart</button>
+  </dialog>
+  <dialog id="badSus">
+    <h2>You caused too much damage!</h2>
+    <button class="restartButton">Restart</button>
+  </dialog>
+
+  <div id="uiContainer">
+    <h1>Sus Lumber Tycoon</h1><br>
+
     <div id="ui">
-      <h1>Sus Lumber Tycoon</h1>
       <button id="pauseBtn">Pause</button>
+      <h2 id="week">Week 1</h2>
       <h2 id="money">Money: $10000</h2>
       <h2 id="wood">Wood: 0 tons</h2>
       <h2 id="sus">Sus Score: 100</h2>
-      <h2>Clients:</h2>
-      <div id="clients"></div>
-      <h2>Suppliers:</h2>
-      <div id="suppliers"></div>
+
+      <div class="entities">
+        <div id="clients">
+          <h2>Clients:</h2>
+        </div>
+        <div id="suppliers">
+          <h2>Suppliers:</h2>
+        </div>
+      </div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+  <script defer type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

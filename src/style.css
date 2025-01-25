@@ -31,11 +31,40 @@ h1 {
   line-height: 1.1;
 }
 
-#ui {
-  max-width: 1280px;
+h2 {
+  font-size: 1em;
+}
+
+#uiContainer {
+  width: 39vw;
+  height: 90vh;
   margin: 0 auto;
   padding: 2rem;
+  overflow-y: scroll;
 }
 
 .client {
+
+}
+
+.clients {
+  width: 15vw;
+}
+
+.suppliers {
+  width: 15vw;
+  margin-left: 20px;
+}
+
+.entities {
+  display: flex;
+}
+
+dialog {
+  position: fixed;
+  top: 40vh;
+  left: 40vw;
+  width: 8vw;
+  height: 8vw;
+  padding: 1vw 1vh;
 }

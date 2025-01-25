@@ -13,6 +13,7 @@ interface Client {
   price: number;
   quota: number;
   paid: boolean;
+  fine: number;
 }
 
 let suppliers: Supplier[] = [
@@ -22,6 +23,30 @@ let suppliers: Supplier[] = [
     available: true,
     susScore: 10,
   },
+  {
+    name: "HAHAHA GET WRECKED",
+    price: 50,
+    available: true,
+    susScore: -10,
+  },
+  {
+    name: "Alpha Wolf Lumber",
+    price: 40,
+    available: true,
+    susScore: -20,
+  },
+  {
+    name: "Garden Green Lumber",
+    price: 200,
+    available: true,
+    susScore: 15,
+  },
+  {
+    name: "Nice Supplyz",
+    price: 90,
+    available: true,
+    susScore: 0,
+  },
 ];
 let clients: Client[] = [
   {
@@ -29,13 +54,36 @@ let clients: Client[] = [
     price: 150,
     quota: 10,
     paid: false,
+    fine: 1000,
   },
-  /*
-   * cool carpenters
-   * oak laboratories
-   * crazy construction incorporated
-   * lawful landscaperz
-   */
+  {
+    name: "Cool Carpenters",
+    price: 100,
+    quota: 70,
+    paid: false,
+    fine: 400,
+  },
+  {
+    name: "Oak Laboratories",
+    price: 210,
+    quota: 50,
+    paid: false,
+    fine: 3000,
+  },
+  {
+    name: "Crazy Construction Inc.",
+    price: 200,
+    quota: 250,
+    paid: false,
+    fine: 2500,
+  },
+  {
+    name: "Lawful Landscaperz",
+    price: 50,
+    quota: 40,
+    paid: false,
+    fine: 250,
+  },
 ];
 
 function buyWood(supplier: Supplier) {
@@ -105,6 +153,13 @@ function setMoney(newMoney: number) {
   if (moneyElement) {
     moneyElement.innerText = "Money: $" + newMoney;
   }
+
+  if (money <= 0) {
+    if (loseBroke) {
+      loseBroke.open = true;
+    }
+    endGame();
+  }
 }
 
 let wood = 0;
@@ -125,9 +180,26 @@ function setSus(newSusScore: number) {
   if (susElement) {
     susElement.innerText = "Sustainability Score: " + susScore;
   }
+
+  if (susScore <= 0) {
+    if (loseSus) {
+      loseSus.open = true;
+    }
+    endGame();
+  }
 }
 
-const width = window.innerWidth * 0.8;
+let week = 1;
+const weekElement = document.getElementById("week");
+function setWeek(newWeek: number) {
+  week = newWeek;
+
+  if (weekElement) {
+    weekElement.innerText = "Week " + week;
+  }
+}
+
+const width = window.innerWidth * 0.6;
 const height = window.innerHeight;
 
 const renderer = new Three.WebGLRenderer();
@@ -156,9 +228,21 @@ scene.add(ocean, island);
 function animate() {
   renderer.render(scene, camera);
 }
+renderer.setAnimationLoop(animate);
 
+let loop: any;
 function startGame() {
-  renderer.setAnimationLoop(animate);
+  if (ui) {
+    ui.hidden = false;
+  }
+  if (startScreen) {
+    startScreen.open = false;
+  }
+
+  setMoney(10000);
+  setWood(0);
+  setSus(100);
+  setWeek(1);
 
   const clientList = document.getElementById("clients");
   let clientIndex = 0;
@@ -171,7 +255,7 @@ function startGame() {
   <p>
     <b>${client.name}</b><br>
     Price: $${client.price}/ton<br>
-    Quota: ${client.quota} tons
+    Quota: ${client.quota} tons<br>
     <button id="c${clientIndex}">Deliver Wood</button>
   </p>
   `;
@@ -182,6 +266,8 @@ function startGame() {
     if (currentButton) {
       currentButton.onclick = () => sellWood(client);
     }
+
+    clientIndex++;
   }
 
   const supplierList = document.getElementById("suppliers");
@@ -207,16 +293,66 @@ function startGame() {
     if (currentButton) {
       currentButton.onclick = () => buyWood(supplier);
     }
+
+    supplierIndex++;
   }
 
-  setInterval(() => {
+  loop = setInterval(() => {
+    setWeek(week + 1);
+    if (week === 10) {
+      if (winScreen) {
+        winScreen.open = true;
+      }
+      endGame();
+    }
+
     for (let client of clients) {
+      if (!client.paid) {
+        setMoney(money - client.fine);
+      }
       resetClient(client);
     }
     for (let supplier of suppliers) {
       resetSupplier(supplier);
     }
-  }, 6000);
+  }, 10000);
 }
 
-startGame();
+function endGame() {
+  if (ui) {
+    ui.hidden = true;
+  }
+
+  clearInterval(loop);
+}
+
+function restartGame() {
+  winScreen.open = false;
+  loseBroke.open = false;
+  loseSus.open = false;
+
+  startGame();
+}
+
+const startScreen = document.getElementById("startScreen") as HTMLDialogElement;
+const startButton = document.getElementById("startButton");
+if (startButton) {
+  startButton.onclick = startGame;
+}
+
+const winScreen = document.getElementById("winScreen") as HTMLDialogElement;
+
+const loseBroke = document.getElementById("broke") as HTMLDialogElement;
+const loseSus = document.getElementById("badSus") as HTMLDialogElement;
+
+const restartButtons = document.getElementsByClassName(
+  "restartButton"
+) as HTMLCollectionOf<HTMLButtonElement>;
+for (let button of restartButtons) {
+  button.onclick = restartGame;
+}
+
+const ui = document.getElementById("ui");
+if (ui) {
+  ui.hidden = true;
+}
