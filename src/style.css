@@ -11,6 +11,9 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 * {
@@ -62,9 +65,14 @@ h2 {
 
 dialog {
   position: fixed;
-  top: 40vh;
+  top: 30vh;
   left: 40vw;
-  width: 8vw;
-  height: 8vw;
+  width: 30vw;
+  height: 30vh;
   padding: 1vw 1vh;
+}
+
+#instructions {
+  overflow-y: scroll;
+  height: 20vh;
 }

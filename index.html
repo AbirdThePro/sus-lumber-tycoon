@@ -12,7 +12,23 @@
   <dialog id="startScreen" open>
     <h2>Welcome to Sus Lumber Tycoon!</h2>
     <button id="startButton">Start Game</button>
-    <button id="tutorialButton">Instructions</button>
+    <button onclick="document.getElementById('tutorialScreen').open = true">Instructions</button>
+  </dialog>
+  <dialog id="tutorialScreen">
+    <h2>Tutorial</h2>
+    <p id="instructions">
+      Welcome to Sus Lumber Tycoon!
+      Your goal is to run a lumber business for 10 weeks. You want to protect the environment and be Sus(tainable), so
+      choose who you buy wood from wisely. You must also preserve and hopefully grow your business, so try your best to
+      make a profit. Buy from suppliers and meet clients' quotas each week. Failure to do so will result in a fine.
+      Fines double on week 8 and are multiplied by 6 on week 9. Each in-game week is 10 seconds, so think fast! You can
+      press escape to exit the game. Good luck!
+    </p>
+    <button onclick="document.getElementById('tutorialScreen').open = false">Close</button>
+  </dialog>
+  <dialog id="pauseScreen">
+    <h2>Game paused</h2>
+    Click the unpause button to resume the game.
   </dialog>
   <dialog id="winScreen">
     <h2>You win!</h2>
@@ -31,8 +47,9 @@
     <h1>Sus Lumber Tycoon</h1><br>
 
     <div id="ui">
-      <button id="pauseBtn">Pause</button>
+      <button id="pauseButton">Pause</button>
       <h2 id="week">Week 1</h2>
+      <progress id="weekProgress" value="0" max="10"></progress>
       <h2 id="money">Money: $10000</h2>
       <h2 id="wood">Wood: 0 tons</h2>
       <h2 id="sus">Sus Score: 100</h2>

@@ -87,12 +87,23 @@ let clients: Client[] = [
 ];
 
 function buyWood(supplier: Supplier) {
+  if (paused) {
+    return;
+  }
+
   if (money < supplier.price) {
     alert("You do not have enough money!");
   } else {
     setMoney(money - supplier.price);
     setWood(wood + 10);
     setSus(susScore + supplier.susScore);
+
+    if (supplier.susScore > 0) {
+      createTree();
+    }
+    if (supplier.susScore < 0) {
+      destroyTree();
+    }
 
     if (Math.random() < 0.1) {
       supplier.available = false;
@@ -118,6 +129,10 @@ function resetSupplier(supplier: Supplier) {
 }
 
 function sellWood(client: Client) {
+  if (paused) {
+    return;
+  }
+
   if (wood < client.quota) {
     alert("You do not have enough wood!");
   } else {
@@ -135,6 +150,21 @@ function sellWood(client: Client) {
 }
 
 function resetClient(client: Client) {
+  if (week === 3 || week === 5 || week === 7) {
+    client.quota += 10;
+    let quotaElement = document.getElementById("cq" + client.name);
+    if (quotaElement) {
+      quotaElement.innerText = client.quota.toString();
+    }
+  }
+
+  if (week === 8) {
+    client.fine *= 2;
+  }
+  if (week === 9) {
+    client.fine *= 6;
+  }
+
   client.paid = false;
 
   const clientElement = document.getElementById(client.name);
@@ -213,6 +243,49 @@ camera.translateY(10);
 camera.translateZ(10);
 camera.rotateX(-Math.PI / 4);
 
+interface Tree {
+  trunk: Three.Mesh;
+  leaves: Three.Mesh;
+  dying: boolean;
+  dieProgress: number;
+}
+let trees: Tree[] = [];
+function createTree() {
+  const height = Math.random() * 0.3 + 0.7;
+
+  let leaves = new Three.Mesh(
+    new Three.BoxGeometry(0.3, 0.3, 0.3),
+    new Three.MeshBasicMaterial({ color: 0x33cc33 })
+  );
+
+  let trunk = new Three.Mesh(
+    new Three.BoxGeometry(0.1, height, 0.1),
+    new Three.MeshBasicMaterial({ color: 0x964b00 })
+  );
+
+  scene.add(trunk, leaves);
+
+  const x = Math.random() * 10 - 5;
+  const z = Math.random() * 10 - 5;
+
+  leaves.translateX(x);
+  leaves.translateY(height);
+  leaves.translateZ(z);
+
+  trunk.translateX(x);
+  trunk.translateY(height / 2);
+  trunk.translateZ(z);
+
+  let dying = false;
+  let dieProgress = 0;
+
+  trees.push({ leaves, trunk, dying, dieProgress });
+}
+
+function destroyTree() {
+  trees[trees.length].dying = true;
+}
+
 const ocean = new Three.Mesh(
   new Three.BoxGeometry(30, 0.1, 30),
   new Three.MeshBasicMaterial({ color: 0x5555ff })
@@ -227,10 +300,30 @@ scene.add(ocean, island);
 
 function animate() {
   renderer.render(scene, camera);
+
+  let liveTrees = [];
+
+  for (let tree of trees) {
+    if (tree.dying) {
+      tree.dieProgress++;
+      tree.trunk.translateY(2 - 0.02 * tree.dieProgress);
+      tree.leaves.translateY(2 - 0.02 * tree.dieProgress);
+    }
+
+    if (tree.trunk.position.y < -3) {
+      scene.remove(tree.trunk);
+      scene.remove(tree.leaves);
+    } else {
+      liveTrees.push(tree);
+    }
+  }
+
+  trees = liveTrees;
 }
 renderer.setAnimationLoop(animate);
 
 let loop: any;
+let progressLoop: any;
 function startGame() {
   if (ui) {
     ui.hidden = false;
@@ -244,7 +337,24 @@ function startGame() {
   setSus(100);
   setWeek(1);
 
+  const progressBar = document.getElementById(
+    "weekProgress"
+  ) as HTMLProgressElement;
+  progressLoop = setInterval(() => {
+    if (paused) {
+      return;
+    }
+
+    progressBar.value++;
+    if (progressBar.value === 10) {
+      progressBar.value = 0;
+    }
+  }, 1000);
+
   const clientList = document.getElementById("clients");
+  if (clientList) {
+    clientList.innerHTML = "<h2>Clients:</h2>";
+  }
   let clientIndex = 0;
   for (let client of clients) {
     const currentClient = document.createElement("div");
@@ -255,7 +365,7 @@ function startGame() {
   <p>
     <b>${client.name}</b><br>
     Price: $${client.price}/ton<br>
-    Quota: ${client.quota} tons<br>
+    Quota: <span id="cq${client.name}">${client.quota}</span> tons<br>
     <button id="c${clientIndex}">Deliver Wood</button>
   </p>
   `;
@@ -271,6 +381,9 @@ function startGame() {
   }
 
   const supplierList = document.getElementById("suppliers");
+  if (supplierList) {
+    supplierList.innerHTML = "<h2>Suppliers:</h2>";
+  }
   let supplierIndex = 0;
   for (let supplier of suppliers) {
     let currentSupplier = document.createElement("div");
@@ -298,8 +411,12 @@ function startGame() {
   }
 
   loop = setInterval(() => {
+    if (paused) {
+      return;
+    }
+
     setWeek(week + 1);
-    if (week === 10) {
+    if (week === 11) {
       if (winScreen) {
         winScreen.open = true;
       }
@@ -324,6 +441,7 @@ function endGame() {
   }
 
   clearInterval(loop);
+  clearInterval(progressLoop);
 }
 
 function restartGame() {
@@ -334,11 +452,29 @@ function restartGame() {
   startGame();
 }
 
+let paused = false;
+function pause() {
+  paused = !paused;
+
+  if (pauseButton) {
+    pauseButton.innerText = paused ? "Unpause" : "Pause";
+  }
+  if (pauseScreen) {
+    pauseScreen.open = paused;
+  }
+}
+
 const startScreen = document.getElementById("startScreen") as HTMLDialogElement;
 const startButton = document.getElementById("startButton");
 if (startButton) {
   startButton.onclick = startGame;
 }
+
+const pauseButton = document.getElementById("pauseButton");
+if (pauseButton) {
+  pauseButton.onclick = pause;
+}
+const pauseScreen = document.getElementById("pauseScreen") as HTMLDialogElement;
 
 const winScreen = document.getElementById("winScreen") as HTMLDialogElement;
 
@@ -356,3 +492,11 @@ const ui = document.getElementById("ui");
 if (ui) {
   ui.hidden = true;
 }
+
+document.addEventListener("keypress", (e: KeyboardEvent) => {
+  if (e.key === "escape") {
+    if (confirm("Are you sure you want to exit the game?")) {
+      window.close();
+    }
+  }
+});
